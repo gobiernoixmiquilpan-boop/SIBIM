@@ -496,7 +496,7 @@ function ProductosContent() {
                     </span>
                     <span className="text-muted-foreground">${product.precio_venta.toLocaleString("es-MX", { minimumFractionDigits: 0 })}</span>
                   </div>
-                  <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1 mt-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-accent flex-1" aria-label={`Editar ${product.nombre}`}
                       onClick={() => setEditTarget(product)}>
                       <PencilSimple className="w-3.5 h-3.5" weight="duotone" />
