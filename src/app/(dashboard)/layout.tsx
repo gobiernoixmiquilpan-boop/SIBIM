@@ -33,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <UIProvider>
             <div className="flex h-screen overflow-hidden">
               <Sidebar />
-              <main className="flex-1 lg:ml-64 overflow-y-auto">
+              <main className="flex-1 lg:ml-64 transition-all duration-300 overflow-y-auto">
                 <AlertBanner />
                 {children}
               </main>

@@ -23,7 +23,7 @@ import {
 import {
   MagnifyingGlass, Plus, PencilSimple, Trash, Eye,
   Package, Upload, WarningCircle, DownloadSimple, X, SpinnerGap,
-  SquaresFour, Rows, Copy,
+  SquaresFour, Rows, Copy, CheckSquare, Square,
 } from "@phosphor-icons/react";
 import { CategoryIcon } from "@/lib/icon-map";
 import { ALL_AREA_NAMES } from "@/lib/areas-list";
@@ -100,6 +100,44 @@ function ProductosContent() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [duplicateSource, setDuplicateSource] = useState<Product | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function toggleSelectAll() {
+    setSelected((prev) =>
+      prev.size === paginated.length ? new Set() : new Set(paginated.map((p) => p.id))
+    );
+  }
+  function clearSelection() { setSelected(new Set()); }
+
+  function handleBatchDelete() {
+    const ids = Array.from(selected);
+    const saved = products.filter((p) => ids.includes(p.id));
+    ids.forEach((id) => deleteProduct(id));
+    clearSelection();
+    toast(`${ids.length} bien${ids.length !== 1 ? "es" : ""} eliminado${ids.length !== 1 ? "s" : ""}`, "success",
+      saved.length > 0 ? { label: "Deshacer", onClick: () => saved.forEach((p) => restoreProduct(p)) } : undefined
+    );
+  }
+
+  function handleBatchExportCSV() {
+    const selectedProducts = products.filter((p) => selected.has(p.id));
+    const headers = ["Nombre", "Código", "Categoría", "Área", "Stock", "Mín.", "Valor", "Estado"];
+    const rows = selectedProducts.map((p) => [
+      p.nombre, p.codigo, p.categoria?.nombre ?? "", p.area ?? "",
+      String(p.stock_actual), String(p.stock_minimo),
+      `$${p.precio_venta.toFixed(2)}`, STATUS_CONFIG[p.estado].label,
+    ]);
+    downloadCSV(`seleccion_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+    toast(`CSV con ${selectedProducts.length} bienes exportado`);
+  }
+
   const openedViewRef = useRef<string | null>(null);
 
   function toggleSort(field: string) {
@@ -393,6 +431,30 @@ function ProductosContent() {
           </CardContent>
         </Card>
 
+        {/* Batch action bar */}
+        {selected.size > 0 && (
+          <div className="animate-in slide-in-from-bottom-2 fade-in duration-200 flex items-center gap-3 px-4 py-3 rounded-xl border border-primary/30 shadow-lg"
+            style={{ background: "color-mix(in oklch, var(--primary) 8%, var(--card))" }}>
+            <span className="text-sm font-semibold text-foreground">
+              {selected.size} bien{selected.size !== 1 ? "es" : ""} seleccionado{selected.size !== 1 ? "s" : ""}
+            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              <Button variant="outline" size="sm" onClick={handleBatchExportCSV}
+                className="h-8 gap-1.5 text-xs border-border text-muted-foreground hover:text-foreground">
+                <DownloadSimple className="w-3.5 h-3.5" /> Exportar CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleBatchDelete}
+                className="h-8 gap-1.5 text-xs border-rose-500/30 text-rose-500 hover:bg-rose-500/10">
+                <Trash className="w-3.5 h-3.5" /> Eliminar ({selected.size})
+              </Button>
+              <Button variant="ghost" size="sm" onClick={clearSelection}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Grid view */}
         {viewMode === "grid" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -526,6 +588,14 @@ function ProductosContent() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="w-10 pl-4">
+                      <button type="button" onClick={toggleSelectAll} aria-label="Seleccionar todos"
+                        className="text-muted-foreground hover:text-foreground transition-colors">
+                        {selected.size > 0 && selected.size === paginated.length
+                          ? <CheckSquare className="w-4 h-4 text-primary" weight="fill" />
+                          : <Square className="w-4 h-4" />}
+                      </button>
+                    </TableHead>
                     <SortTh label="Bien" field="nombre" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
                     <SortTh label="Código" field="codigo" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
                     <SortTh label="Categoría" field="categoria" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
@@ -547,6 +617,11 @@ function ProductosContent() {
                         animationFillMode: "backwards",
                         background: i % 2 === 1 ? "color-mix(in oklch, var(--muted) 35%, transparent)" : undefined,
                       }}>
+                      <TableCell className="w-10 pl-4" onClick={(e) => { e.stopPropagation(); toggleSelect(product.id); }}>
+                        {selected.has(product.id)
+                          ? <CheckSquare className="w-4 h-4 text-primary" weight="fill" />
+                          : <Square className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--muted)" }}>
@@ -582,11 +657,27 @@ function ProductosContent() {
                         ${product.precio_venta.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell className="text-sm">
-                        {product.fecha_vencimiento
-                          ? <span className={new Date(product.fecha_vencimiento) < new Date() ? "text-red-400" : "text-muted-foreground"}>
-                              {new Date(product.fecha_vencimiento).toLocaleDateString("es-MX")}
-                            </span>
-                          : <span className="text-muted-foreground">—</span>}
+                        {product.fecha_vencimiento ? (() => {
+                          const dias = Math.ceil((new Date(product.fecha_vencimiento).getTime() - Date.now()) / 86400000);
+                          const badge =
+                            dias < 0  ? { label: "Vencido",    cls: "bg-rose-500/15 text-rose-500" } :
+                            dias === 0 ? { label: "Hoy",        cls: "bg-orange-500/15 text-orange-500" } :
+                            dias <= 3  ? { label: `${dias}d`,   cls: "bg-amber-500/15 text-amber-500" } :
+                            dias <= 7  ? { label: `${dias}d`,   cls: "bg-purple-500/15 text-purple-500" } :
+                            null;
+                          return (
+                            <div className="flex flex-col gap-0.5">
+                              <span className={dias < 0 ? "text-rose-400" : "text-muted-foreground"}>
+                                {new Date(product.fecha_vencimiento).toLocaleDateString("es-MX")}
+                              </span>
+                              {badge && (
+                                <span className={`inline-flex w-fit px-1.5 py-0.5 rounded text-[10px] font-semibold ${badge.cls}`}>
+                                  {badge.label}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })() : <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       <TableCell>
                         <Badge className={`text-xs ${STATUS_CONFIG[product.estado].className}`}>

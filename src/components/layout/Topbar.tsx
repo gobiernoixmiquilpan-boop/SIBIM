@@ -63,7 +63,7 @@ export function Topbar({ title, subtitle }: TopbarProps) {
         return dias <= 7;
       })
       .map((p) => ({ product: p, tipo: "por_vencer" as const })),
-  ].slice(0, 5);
+  ].slice(0, 8);
 
   const handleRefresh = useCallback(() => {
     setSpinning(true);
@@ -155,12 +155,15 @@ export function Topbar({ title, subtitle }: TopbarProps) {
               <div
                 role="menu"
                 aria-label="Notificaciones"
-                className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-border shadow-2xl z-50 overflow-hidden"
+                className="absolute right-0 top-full mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-border shadow-2xl z-50 overflow-hidden"
                 style={{ background: "var(--card)" }}
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                  <span className="text-sm font-semibold text-foreground">Notificaciones</span>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">Notificaciones</span>
+                    <p className="text-[10px] text-muted-foreground/60">{fecha}</p>
+                  </div>
                   {alertCount > 0 && (
                     <Badge
                       className="text-xs border-0"
