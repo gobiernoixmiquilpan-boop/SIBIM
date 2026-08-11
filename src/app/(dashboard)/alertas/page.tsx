@@ -25,13 +25,27 @@ export default function AlertasPage() {
   const [now] = useState(() => Date.now());
   const [restockTarget, setRestockTarget] = useState<Product | null>(null);
   const scopedProducts = user.role === "admin" ? products : products.filter((p) => isAreaAccessible(user, p.area));
-  const agotados = scopedProducts.filter((p) => p.estado === "agotado");
-  const bajoStock = scopedProducts.filter((p) => p.estado === "bajo_stock");
-  const porVencer = scopedProducts.filter((p) => {
-    if (!p.fecha_vencimiento) return false;
-    const dias = Math.ceil((new Date(p.fecha_vencimiento).getTime() - now) / 86400000);
-    return dias <= 7;
-  });
+  const agotados = scopedProducts
+    .filter((p) => p.estado === "agotado")
+    .sort((a, b) => a.stock_actual - b.stock_actual);
+  const bajoStock = scopedProducts
+    .filter((p) => p.estado === "bajo_stock")
+    .sort((a, b) => {
+      const ra = a.stock_minimo > 0 ? a.stock_actual / a.stock_minimo : 1;
+      const rb = b.stock_minimo > 0 ? b.stock_actual / b.stock_minimo : 1;
+      return ra - rb;
+    });
+  const porVencer = scopedProducts
+    .filter((p) => {
+      if (!p.fecha_vencimiento) return false;
+      const dias = Math.ceil((new Date(p.fecha_vencimiento).getTime() - now) / 86400000);
+      return dias <= 7;
+    })
+    .sort((a, b) => {
+      const da = Math.ceil((new Date(a.fecha_vencimiento!).getTime() - now) / 86400000);
+      const db = Math.ceil((new Date(b.fecha_vencimiento!).getTime() - now) / 86400000);
+      return da - db;
+    });
 
   function diasRestantes(fecha: string) {
     return Math.ceil((new Date(fecha).getTime() - now) / 86400000);

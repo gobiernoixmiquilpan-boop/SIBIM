@@ -80,13 +80,12 @@ function ProductosContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const areaFromUrl = searchParams.get("area") ?? "todas";
   const viewFromUrl = searchParams.get("view");
 
-  const [search, setSearch] = useState("");
-  const [filterCat, setFilterCat] = useState("todas");
-  const [filterStatus, setFilterStatus] = useState("todos");
-  const [filterArea, setFilterArea] = useState(areaFromUrl);
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const [filterCat, setFilterCat] = useState(searchParams.get("cat") ?? "todas");
+  const [filterStatus, setFilterStatus] = useState(searchParams.get("status") ?? "todos");
+  const [filterArea, setFilterArea] = useState(searchParams.get("area") ?? "todas");
   const [openAdd, setOpenAdd] = useState(false);
   const [editTarget, setEditTarget] = useState<Product | null>(null);
   const [viewTarget, setViewTarget] = useState<Product | null>(null);
@@ -140,6 +139,17 @@ function ProductosContent() {
 
   const openedViewRef = useRef<string | null>(null);
 
+  // Sync active filters to URL so the page is bookmarkable and shareable.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    if (filterCat !== "todas") params.set("cat", filterCat);
+    if (filterStatus !== "todos") params.set("status", filterStatus);
+    if (filterArea !== "todas") params.set("area", filterArea);
+    const qs = params.toString();
+    router.replace(qs ? `/productos?${qs}` : "/productos", { scroll: false });
+  }, [search, filterCat, filterStatus, filterArea, router]);
+
   function toggleSort(field: string) {
     if (sortField === field) setSortDir((d) => d === "asc" ? "desc" : "asc");
     else { setSortField(field); setSortDir("asc"); }
@@ -164,9 +174,12 @@ function ProductosContent() {
       openedViewRef.current = viewFromUrl;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setViewTarget(product);
-      router.replace("/productos");
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("view");
+      const qs = params.toString();
+      router.replace(qs ? `/productos?${qs}` : "/productos");
     }
-  }, [viewFromUrl, products, router]);
+  }, [viewFromUrl, products, router, searchParams]);
 
   const scopedProducts = useMemo(
     () => user.role === "admin" ? products : products.filter((p) => isAreaAccessible(user, p.area)),

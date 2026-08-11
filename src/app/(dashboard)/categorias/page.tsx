@@ -166,7 +166,7 @@ export default function CategoriasPage() {
                       </div>
                     </div>
                     {user.role === "admin" && (
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-accent text-muted-foreground hover:text-primary"
                           aria-label={`Editar ${cat.nombre}`}
                           onClick={() => setEditTarget(cat)}>

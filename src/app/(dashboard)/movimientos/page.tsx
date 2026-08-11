@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Topbar } from "@/components/layout/Topbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,16 +32,40 @@ import { useDismissableMenu } from "@/lib/use-dismissable-menu";
 import { MovimientoForm, TIPO_CONFIG } from "@/components/movimiento-form";
 import type { MovementType } from "@/lib/types";
 
+function MovimientosSkeleton() {
+  return (
+    <div className="min-h-screen bg-background animate-pulse">
+      <div className="h-16 bg-muted border-b border-border" />
+      <div className="p-6 space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-xl bg-muted" />)}
+        </div>
+        <div className="h-14 rounded-xl bg-muted" />
+        {[...Array(6)].map((_, i) => <div key={i} className="h-12 rounded-xl bg-muted" />)}
+      </div>
+    </div>
+  );
+}
+
 export default function MovimientosPage() {
+  return (
+    <Suspense fallback={<MovimientosSkeleton />}>
+      <MovimientosContent />
+    </Suspense>
+  );
+}
+
+function MovimientosContent() {
+  const searchParams = useSearchParams();
   const user = useAuth();
   const router = useRouter();
   const { products, movements, deleteMovement } = useData();
   const { toast } = useToast();
 
-  const [search, setSearch] = useState("");
-  const [filterTipo, setFilterTipo] = useState("todos");
-  const [fechaDesde, setFechaDesde] = useState("");
-  const [fechaHasta, setFechaHasta] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const [filterTipo, setFilterTipo] = useState(searchParams.get("tipo") ?? "todos");
+  const [fechaDesde, setFechaDesde] = useState(searchParams.get("desde") ?? "");
+  const [fechaHasta, setFechaHasta] = useState(searchParams.get("hasta") ?? "");
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteMovId, setDeleteMovId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -51,6 +75,16 @@ export default function MovimientosPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const closeExport = useCallback(() => setExportOpen(false), []);
   const exportMenuRef = useDismissableMenu<HTMLDivElement>(exportOpen, closeExport);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    if (filterTipo !== "todos") params.set("tipo", filterTipo);
+    if (fechaDesde) params.set("desde", fechaDesde);
+    if (fechaHasta) params.set("hasta", fechaHasta);
+    const qs = params.toString();
+    router.replace(qs ? `/movimientos?${qs}` : "/movimientos", { scroll: false });
+  }, [search, filterTipo, fechaDesde, fechaHasta, router]);
 
   function toggleSort(field: string) {
     if (sortField === field) setSortDir((d) => d === "asc" ? "desc" : "asc");
