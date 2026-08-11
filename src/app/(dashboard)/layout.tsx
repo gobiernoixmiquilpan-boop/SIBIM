@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { MainContent } from "@/components/layout/main-content";
 import { AuthProvider } from "@/components/auth-provider";
 import { UIProvider } from "@/components/layout/ui-context";
 import { CommandPalette } from "@/components/command-palette";
@@ -33,10 +34,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <UIProvider>
             <div className="flex h-screen overflow-hidden">
               <Sidebar />
-              <main className="flex-1 lg:ml-64 transition-all duration-300 overflow-y-auto">
+              <MainContent>
                 <AlertBanner />
                 {children}
-              </main>
+              </MainContent>
             </div>
             <CommandPalette />
             <BackToTop />

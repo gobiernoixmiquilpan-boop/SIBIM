@@ -195,25 +195,19 @@ function SidebarNav({ onNavigate, collapsed = false, onToggleCollapse }: {
 }
 
 export function Sidebar() {
-  const { sidebarOpen, setSidebarOpen } = useUI();
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("sibim_sidebar_collapsed") === "1";
-  });
+  const { sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useUI();
 
   function toggleCollapse() {
-    setCollapsed((v) => {
-      const next = !v;
-      localStorage.setItem("sibim_sidebar_collapsed", next ? "1" : "0");
-      return next;
-    });
+    const next = !sidebarCollapsed;
+    localStorage.setItem("sibim_sidebar_collapsed", next ? "1" : "0");
+    setSidebarCollapsed(next);
   }
 
   return (
     <>
       {/* Desktop fixed sidebar */}
-      <aside className={`hidden lg:flex fixed left-0 top-0 h-full flex-col z-50 bg-sidebar border-r border-sidebar-border transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
-        <SidebarNav collapsed={collapsed} onToggleCollapse={toggleCollapse} />
+      <aside className={`hidden lg:flex fixed left-0 top-0 h-full flex-col z-50 bg-sidebar border-r border-sidebar-border transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"}`}>
+        <SidebarNav collapsed={sidebarCollapsed} onToggleCollapse={toggleCollapse} />
       </aside>
 
       {/* Mobile drawer */}

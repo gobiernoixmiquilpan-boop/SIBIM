@@ -7,6 +7,8 @@ interface UIContextType {
   setSidebarOpen: (v: boolean) => void;
   commandOpen: boolean;
   setCommandOpen: (v: boolean) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (v: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType | null>(null);
@@ -14,6 +16,11 @@ const UIContext = createContext<UIContextType | null>(null);
 export function UIProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    setSidebarCollapsed(localStorage.getItem("sibim_sidebar_collapsed") === "1");
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -27,7 +34,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <UIContext.Provider value={{ sidebarOpen, setSidebarOpen, commandOpen, setCommandOpen }}>
+    <UIContext.Provider value={{ sidebarOpen, setSidebarOpen, commandOpen, setCommandOpen, sidebarCollapsed, setSidebarCollapsed }}>
       {children}
     </UIContext.Provider>
   );
