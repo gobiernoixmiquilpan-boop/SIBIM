@@ -361,6 +361,11 @@ export default function DashboardPage() {
                   </div>
                 );
               })}
+              {bajosStock.length > 5 && (
+                <Link href="/alertas" className="flex items-center justify-center gap-1 text-xs text-primary hover:underline pt-1 pb-0.5">
+                  +{bajosStock.length - 5} más <ArrowRight className="w-3 h-3" />
+                </Link>
+              )}
             </CardContent>
           </Card>
 
@@ -384,7 +389,7 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               )}
-              {scopedMovements.slice(0, 5).map((mov) => (
+              {[...scopedMovements].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 5).map((mov) => (
                 <div key={mov.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     mov.tipo === "entrada" ? "bg-teal-500/15" :
@@ -407,11 +412,21 @@ export default function DashboardPage() {
                       {mov.tipo === "entrada" ? "+" : mov.tipo === "salida" ? "-" : "~"}{mov.cantidad}
                     </p>
                     <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                      {new Date(mov.created_at).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
+                      {(() => {
+                        const d = new Date(mov.created_at);
+                        return d.toDateString() === new Date().toDateString()
+                          ? d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })
+                          : d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+                      })()}
                     </p>
                   </div>
                 </div>
               ))}
+              {scopedMovements.length > 5 && (
+                <Link href="/movimientos" className="flex items-center justify-center gap-1 text-xs text-primary hover:underline pt-1 pb-0.5">
+                  +{scopedMovements.length - 5} más <ArrowRight className="w-3 h-3" />
+                </Link>
+              )}
             </CardContent>
           </Card>
         </div>
