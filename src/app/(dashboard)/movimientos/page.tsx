@@ -430,22 +430,36 @@ export default function MovimientosPage() {
             </div>
 
             {filtered.length === 0 && (
-              <div className="text-center py-16 flex flex-col items-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                  <ClipboardText className="w-7 h-7 text-muted-foreground" weight="duotone" />
+              <div className="text-center py-20 flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner"
+                  style={{ background: "var(--muted)" }}>
+                  <ClipboardText className="w-8 h-8 text-muted-foreground/50" weight="duotone" />
                 </div>
-                <div>
-                  <p className="text-foreground font-medium text-sm">Sin movimientos</p>
-                  <p className="text-muted-foreground text-xs mt-1">
-                    {hasFilters ? "Prueba con otros filtros" : "Registra el primer movimiento"}
+                <div className="space-y-1">
+                  <p className="text-foreground font-semibold text-sm">
+                    {hasFilters ? "Sin resultados" : "Aún no hay movimientos"}
+                  </p>
+                  <p className="text-muted-foreground text-xs max-w-xs">
+                    {hasFilters
+                      ? "No hay movimientos que coincidan con los filtros aplicados."
+                      : "Registra entradas, salidas y ajustes para llevar el historial del inventario."}
                   </p>
                 </div>
-                {hasFilters && (
+                {hasFilters ? (
                   <Button variant="outline" size="sm"
                     onClick={() => { setSearch(""); setFilterTipo("todos"); setFechaDesde(""); setFechaHasta(""); }}
-                    className="text-xs">
-                    Limpiar filtros
+                    className="text-xs gap-1.5 border-border">
+                    <X className="w-3 h-3" /> Limpiar filtros
                   </Button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setOpenDialog(true)}
+                    className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-xs font-semibold text-primary-foreground transition-all active:scale-95 shadow-sm"
+                    style={{ background: "var(--primary)" }}
+                  >
+                    <Plus className="w-3.5 h-3.5" weight="bold" /> Registrar primer movimiento
+                  </button>
                 )}
               </div>
             )}
