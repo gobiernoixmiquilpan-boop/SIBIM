@@ -470,6 +470,7 @@ function ProductosContent() {
 
         {/* Grid view */}
         {viewMode === "grid" && (
+          <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {paginated.map((product, i) => (
               <div key={product.id}
@@ -529,6 +530,14 @@ function ProductosContent() {
                 )}
               </div>
             )}
+          </div>
+          <Pagination
+            total={filtered.length}
+            page={page}
+            perPage={perPage}
+            onPageChange={setPage}
+            onPerPageChange={setPerPage}
+          />
           </div>
         )}
 
